@@ -4,7 +4,7 @@
 void printHelp();
 void fileOpenError(char* filename);
 
-int main(int argc, char const *argv[]){
+int main(int argc, char *argv[]){
 
 	char* chunksFilename;
 	char* sizesFilename;
@@ -15,19 +15,22 @@ int main(int argc, char const *argv[]){
 	}
 	// Read flags
 	for(int i = 1; i < argc; i++){
-		if(!strcmp(argv,"-c")){
+		if(!strcmp(argv[i],"-c")){
 			chunksFilename = argv[i+1];
 			i++;
-			break;
-		}else if(!strcmp(argv,"-s")){
+			continue;
+		}
+		if(!strcmp(argv[i],"-s")){
 			sizesFilename = argv[i+1];
 			i++;
-			break;
-		}else{
-			printHelp();
-			return 1;
+			continue;
 		}
+		printHelp();
+		return 1;
+		
 	}
+	printf("%s\n", chunksFilename);
+	printf("%s\n", sizesFilename);
 	// Open files
 	FILE* chunksFile;
 	FILE* sizesFile;
@@ -35,19 +38,19 @@ int main(int argc, char const *argv[]){
 		fileOpenError(chunksFilename);
 		return 1;
 	}
-	if((chunksFile = fopen(sizesFilename, "r")) == NULL){
-		fileOpenError(chunksFilename);
+	if((sizesFile = fopen(sizesFilename, "r")) == NULL){
+		fileOpenError(sizesFilename);
 		return 1;
 	}
 	// Read in all chunks
 	printf("%s\n", "CHUNKS:");
 	int chunkBuff; // Buffer for reading chunks form chunksFile
-	while(fscanf(file, "%d", &chunkBuff) > 0) {
+	while(fscanf(chunksFile, "%d", &chunkBuff) > 0) {
         printf("%d\n", chunkBuff);
     }
 	printf("%s\n", "SIZES:");
     int sizeBuff; // Buffer for reading sizes form sizesFile
-	while(fscanf(file, "%d", &sizeBuff) > 0) {
+	while(fscanf(sizesFile, "%d", &sizeBuff) > 0) {
         printf("%d\n", sizeBuff);
     }
     // TODO: Test allocation methods
@@ -58,7 +61,7 @@ int main(int argc, char const *argv[]){
 
 //TODO: Write better printHelp();
 void printHelp(){
-	printf("Wrong input.\nExpected:\n./file -c chunks.txt -s sizes.txt");
+	printf("Wrong input.\nExpected:\n./file -c chunks.txt -s sizes.txt\n");
 };
 
 void fileOpenError(char* filename){
