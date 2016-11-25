@@ -5,33 +5,32 @@
 
 // -------------------- Globals and structures ------------------- //
 
-typedef struct chunk
-{
+typedef struct node{
 	size_t size;
-	struct chunk* next;
-} chunk_t;
+	struct node* next;
+} node_t;
 
 // --------------------- Function prototypes --------------------- //
 
 void printHelp();
-chunk_t *createChunk(size_t size);
-void addChunkEnd(chunk_t **start, chunk_t **end, chunk_t *newNode);
-void printChunkList(chunk_t *start);
+node_t *createNode(size_t size);
+void addNodeEnd(node_t **start, node_t **end, node_t *newNode);
+void printList(node_t *start);
 void printResult(char* method, double frag, double timeUsed);
 void fileOpenError(char* filename);
 
-void bestFit(chunk_t *chunkListHead, chunk_t *requestListHead);
+void bestFit(node_t *chunkListHead, node_t *requestListHead);
 
 
 int main(int argc, char *argv[]){
 	
 	char* chunksFilename;
 	char* sizesFilename;
-	chunk_t* chunkListHead = 0;
-	chunk_t* chunkListEnd = 0;
+	node_t* chunkListHead = 0;
+	node_t* chunkListEnd = 0;
 
-	chunk_t* requestListHead = 0;
-	chunk_t* requestListEnd = 0;
+	node_t* requestListHead = 0;
+	node_t* requestListEnd = 0;
 
 	int sizeBuff; // Buffer for reading sizes and chunks form sizesFile
 
@@ -68,11 +67,11 @@ int main(int argc, char *argv[]){
 	}
 	// Read chunk list
 	while(fscanf(chunksFile, "%d", &sizeBuff) > 0) {
-		addChunkEnd(&chunkListHead,&chunkListEnd,createChunk(sizeBuff));
+		addNodeEnd(&chunkListHead,&chunkListEnd,createNode(sizeBuff));
     }
     // Read request list
 	while(fscanf(sizesFile, "%d", &sizeBuff) > 0) {
-		addChunkEnd(&requestListHead,&requestListEnd,createChunk(sizeBuff));
+		addNodeEnd(&requestListHead,&requestListEnd,createNode(sizeBuff));
     }
 
 
@@ -91,12 +90,12 @@ int main(int argc, char *argv[]){
 
 // --------------------------------------------------------------- //
 
-void bestFit(chunk_t *chunkListHead, chunk_t *requestListHead){
-	chunk_t *bestFit = 0;
+void bestFit(node_t *chunkListHead, node_t *requestListHead){
+	node_t *bestFit = 0;
 	// Current chunk
-	chunk_t *currChunk;
+	node_t *currChunk;
 	// Current request 
-	chunk_t *currRequest;
+	node_t *currRequest;
 
 	for(currRequest = requestListHead; currRequest != 0; currRequest = currRequest->next){
 		// Find best fit
@@ -110,7 +109,7 @@ void bestFit(chunk_t *chunkListHead, chunk_t *requestListHead){
 			}
     	}
     	if(bestFit == 0){
-				printf("%s: Failed to allocate %3d bytes of memory.\n", __func__, (int)currRequest -> size);
+				printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
 		}else{
 			//printf("Best fit: %d For: %d\n", (int)bestFit->size, (int)currRequest->size);
 			bestFit->size -= currRequest->size;
@@ -122,9 +121,9 @@ void bestFit(chunk_t *chunkListHead, chunk_t *requestListHead){
 
 // --------------------------------------------------------------- //
 
-chunk_t *createChunk(size_t size){
-    chunk_t *newNode;
-    newNode = (chunk_t*)malloc(sizeof(chunk_t));
+node_t *createNode(size_t size){
+    node_t *newNode;
+    newNode = (node_t*)malloc(sizeof(node_t));
     // If did not allocate memory
     if( newNode == NULL ){
         printf("%s\n", "Error: Could not allocate memory");
@@ -137,7 +136,7 @@ chunk_t *createChunk(size_t size){
 
 // --------------------------------------------------------------- //
 
-void addChunkEnd(chunk_t **start, chunk_t **end, chunk_t *newNode){
+void addNodeEnd(node_t **start, node_t **end, node_t *newNode){
     // if List is empty
     if(*start == 0){
         *start = *end = newNode;
@@ -149,11 +148,12 @@ void addChunkEnd(chunk_t **start, chunk_t **end, chunk_t *newNode){
     }
 }
 
+
 // --------------------------------------------------------------- //
 
-void printChunkList(chunk_t *start){
-    for(chunk_t *current = start; current != 0; current = current->next){
-        printf("Size: %3d \n", (int)current->size);
+void printList(node_t *start){
+    for(node_t *current = start; current != 0; current = current->next){
+        printf("Size: %3zu \n", current->size);
     }
 }
 
