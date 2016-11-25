@@ -12,14 +12,20 @@ typedef struct node{
 
 // --------------------- Function prototypes --------------------- //
 
-void printHelp();
+// Linked list
 node_t *createNode(size_t size);
 void addNodeEnd(node_t **start, node_t **end, node_t *newNode);
-void printList(node_t *start);
-void printResult(char* method, double frag, double timeUsed);
-void fileOpenError(char* filename);
+node_t* dublicateList(node_t *head);
+void deleteList(node_t *head);
 
-void bestFit(node_t *chunkListHead, node_t *requestListHead);
+// Print functions
+void printList(node_t *start);
+void printResult(char* method, double frag, double timeUsed, size_t unfitmem);
+void fileOpenError(char* filename);
+void printHelp();
+
+// Malloc algorithm functions
+size_t bestFit(node_t *chunkListHead, node_t *requestListHead);
 
 
 int main(int argc, char *argv[]){
@@ -76,30 +82,35 @@ int main(int argc, char *argv[]){
 
 
     // Best Fit Test
-	clock_t begin = clock();
-	bestFit(chunkListHead,requestListHead);
+	clock_t begin = clock(); // Mesures CPU time spent
+	size_t unallocatedMem = bestFit(chunkListHead,requestListHead);
 	clock_t end = clock();
 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	printResult("BestFit",time_spent,0);
+	printResult("BestFit",time_spent,0,unallocatedMem);
 
     // TODO: Test all allocation methods
-    
+    // TODO: How to calculate fragmentation?
 
 	return 0;
 }
 
 // --------------------------------------------------------------- //
 
-void bestFit(node_t *chunkListHead, node_t *requestListHead){
+size_t bestFit(node_t *chunkListHead, node_t *requestListHead){
+	// Best fitted chunk
 	node_t *bestFit = 0;
+	// Dublicate chunk list for ecapsulated test
+	node_t *dChunkListHead = dublicateList(chunkListHead);
 	// Current chunk
 	node_t *currChunk;
 	// Current request 
 	node_t *currRequest;
+	// Memory that could not fit
+	size_t memThatCouldNotFit = 0;
 
 	for(currRequest = requestListHead; currRequest != 0; currRequest = currRequest->next){
 		// Find best fit
-		for(currChunk = chunkListHead; currChunk != 0; currChunk = currChunk->next){
+		for(currChunk = dChunkListHead; currChunk != 0; currChunk = currChunk->next){
 			if(currChunk->size >= currRequest->size){
 				if( bestFit == 0 ){
 					bestFit = currChunk;
@@ -110,12 +121,15 @@ void bestFit(node_t *chunkListHead, node_t *requestListHead){
     	}
     	if(bestFit == 0){
 				printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
+				memThatCouldNotFit += currRequest -> size;
 		}else{
 			//printf("Best fit: %d For: %d\n", (int)bestFit->size, (int)currRequest->size);
 			bestFit->size -= currRequest->size;
 			bestFit = 0;
 		}
     }
+    deleteList(dChunkListHead);
+    return memThatCouldNotFit;
 }
 
 
@@ -136,10 +150,10 @@ node_t *createNode(size_t size){
 
 // --------------------------------------------------------------- //
 
-void addNodeEnd(node_t **start, node_t **end, node_t *newNode){
+void addNodeEnd(node_t **head, node_t **end, node_t *newNode){
     // if List is empty
-    if(*start == 0){
-        *start = *end = newNode;
+    if(*head == 0){
+        *head = *end = newNode;
     }
     // if List not empty
     else{
@@ -151,8 +165,39 @@ void addNodeEnd(node_t **start, node_t **end, node_t *newNode){
 
 // --------------------------------------------------------------- //
 
-void printList(node_t *start){
-    for(node_t *current = start; current != 0; current = current->next){
+node_t* dublicateList(node_t *head){
+	if( head == 0 ){
+		return 0;
+	}
+	node_t *newHead = 0;
+	node_t *newEnd = 0;
+	for(node_t *current = head; current != 0; current = current->next){
+        addNodeEnd(&newHead,&newEnd,createNode(current->size));
+    }
+   	return newHead;
+}
+
+// --------------------------------------------------------------- //
+
+void deleteList(node_t *head){
+	if(head == 0){
+		return;
+	}
+	node_t *temp = head;
+	node_t *current = head;
+	current = current->next;
+	free(temp);
+	while(current != 0){
+		temp = current;
+		current = current->next;
+		free(temp);
+	}
+}
+
+// --------------------------------------------------------------- //
+
+void printList(node_t *head){
+    for(node_t *current = head; current != 0; current = current->next){
         printf("Size: %3zu \n", current->size);
     }
 }
@@ -172,8 +217,9 @@ void fileOpenError(char* filename){
 
 // --------------------------------------------------------------- //
 
-void printResult(char* name, double timeUsed, double frag){
-	printf("%s: Time used: %3fs Fragmentation: %3f\n",name,timeUsed,frag);
+void printResult(char* name, double timeUsed, double frag, size_t unfitmem){
+	printf("%s: Time used: %3fs Fragmentation: %3f MemoryNotAllocated: %3zu\n",\
+			name, timeUsed, frag, unfitmem );
 };
 
 // --------------------------------------------------------------- //
