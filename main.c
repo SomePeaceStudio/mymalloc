@@ -1,6 +1,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
+#include "time.h"
 
 // -------------------- Globals and structures ------------------- //
 
@@ -13,10 +14,11 @@ typedef struct chunk
 // --------------------- Function prototypes --------------------- //
 
 void printHelp();
-void fileOpenError(char* filename);
 chunk_t *createChunk(size_t size);
 void addChunkEnd(chunk_t **start, chunk_t **end, chunk_t *newNode);
 void printChunkList(chunk_t *start);
+void printResult(char* method, double frag, double timeUsed);
+void fileOpenError(char* filename);
 
 void bestFit(chunk_t *chunkListHead, chunk_t *requestListHead);
 
@@ -73,14 +75,15 @@ int main(int argc, char *argv[]){
 		addChunkEnd(&requestListHead,&requestListEnd,createChunk(sizeBuff));
     }
 
-    printf("%s\n", "CHUNKS:");
-    printChunkList(chunkListHead);
+
+    // Best Fit Test
+	clock_t begin = clock();
+	bestFit(chunkListHead,requestListHead);
+	clock_t end = clock();
+	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	printResult("BestFit",time_spent,0);
 
     // TODO: Test all allocation methods
-    bestFit(chunkListHead,requestListHead);
-
-    printf("%s\n", "CHUNKS AFTER BEST FIT:");
-    printChunkList(chunkListHead);
     
 
 	return 0;
@@ -95,7 +98,6 @@ void bestFit(chunk_t *chunkListHead, chunk_t *requestListHead){
 	// Current request 
 	chunk_t *currRequest;
 
-	printChunkList(currRequest);
 	for(currRequest = requestListHead; currRequest != 0; currRequest = currRequest->next){
 		// Find best fit
 		for(currChunk = chunkListHead; currChunk != 0; currChunk = currChunk->next){
@@ -117,19 +119,6 @@ void bestFit(chunk_t *chunkListHead, chunk_t *requestListHead){
     }
 }
 
-
-// --------------------------------------------------------------- //
-
-//TODO: Write better printHelp();
-void printHelp(){
-	printf("Wrong input.\nExpected:\n./file -c chunks.txt -s sizes.txt\n");
-};
-
-// --------------------------------------------------------------- //
-
-void fileOpenError(char* filename){
-	printf("Could not open file: %s\n",filename);
-};
 
 // --------------------------------------------------------------- //
 
@@ -167,3 +156,24 @@ void printChunkList(chunk_t *start){
         printf("Size: %3d \n", (int)current->size);
     }
 }
+
+// --------------------------------------------------------------- //
+
+//TODO: Write better printHelp();
+void printHelp(){
+	printf("Wrong input.\nExpected:\n./file -c chunks.txt -s sizes.txt\n");
+};
+
+// --------------------------------------------------------------- //
+
+void fileOpenError(char* filename){
+	printf("Could not open file: %s\n",filename);
+};
+
+// --------------------------------------------------------------- //
+
+void printResult(char* name, double timeUsed, double frag){
+	printf("%s: Time used: %3fs Fragmentation: %3f\n",name,timeUsed,frag);
+};
+
+// --------------------------------------------------------------- //
