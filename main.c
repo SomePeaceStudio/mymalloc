@@ -8,9 +8,15 @@
 // -------------------- Globals and structures ------------------- //
 
 typedef struct node{
-	size_t size;
-	struct node* next;
+	size_t 	size;
+	struct 	node* next;
 } node_t;
+
+typedef struct testResults{
+	double 		fragmentation;
+	size_t 		totalDeniedSize;
+	double 		timeUsed;
+} testResults_t;
 
 // --------------------- Function prototypes --------------------- //
 
@@ -22,14 +28,18 @@ void deleteList(node_t *head);
 
 // Print functions
 void printList(node_t *start);
-void printResult(char* method, double frag, double timeUsed, size_t unfitmem);
+void printResultOld(char* method, double frag, double timeUsed, size_t unfitmem); //Deprecated soon be removed
+void printResult(char* name, testResults_t results);
 void fileOpenError(char* filename);
 void printHelp();
 
 // Malloc algorithm functions
-size_t bestFit(node_t *chunkListHead, node_t *requestListHead);
+testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead);
 
+
+// Result calculation
 double getFragmentation(node_t *head);
+void initResults(testResults_t* results);
 
 
 
@@ -85,13 +95,8 @@ int main(int argc, char *argv[]){
 		addNodeEnd(&requestListHead,&requestListEnd,createNode(sizeBuff));
     }
 
-
-    // Best Fit Test
-	clock_t begin = clock(); // Mesures CPU time spent
-	size_t unallocatedMem = bestFit(chunkListHead,requestListHead);
-	clock_t end = clock();
-	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	printResult("BestFit",time_spent,0,unallocatedMem);
+	// bestFit(chunkListHead,requestListHead);
+	printResult("BestFit", bestFit(chunkListHead,requestListHead));
 
     // TODO: Test all allocation methods
     // TODO: How to calculate fragmentation?
@@ -101,18 +106,19 @@ int main(int argc, char *argv[]){
 
 // --------------------------------------------------------------- //
 
-size_t bestFit(node_t *chunkListHead, node_t *requestListHead){
-	// Best fitted chunk
+testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead){
+	// Results
+	testResults_t results;
+	initResults(&results);
+
 	node_t *bestFit = 0;
 	// Dublicate chunk list for ecapsulated test
 	node_t *dChunkListHead = dublicateList(chunkListHead);
-	// Current chunk
+	// Current chunk / Request
 	node_t *currChunk;
-	// Current request 
 	node_t *currRequest;
-	// Memory that could not fit
-	size_t memThatCouldNotFit = 0;
 
+	clock_t begin = clock();
 	for(currRequest = requestListHead; currRequest != 0; currRequest = currRequest->next){
 		// Find best fit
 		for(currChunk = dChunkListHead; currChunk != 0; currChunk = currChunk->next){
@@ -126,16 +132,22 @@ size_t bestFit(node_t *chunkListHead, node_t *requestListHead){
     	}
     	if(bestFit == 0){
 				printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
-				memThatCouldNotFit += currRequest -> size;
+				results.totalDeniedSize += currRequest -> size;
 		}else{
 			//printf("Best fit: %d For: %d\n", (int)bestFit->size, (int)currRequest->size);
 			bestFit->size -= currRequest->size;
 			bestFit = 0;
 		}
     }
-    printf("Fragmentation: %3e\n", getFragmentation(dChunkListHead));
+    clock_t end = clock();
+    // Calculate Time used
+	results.timeUsed = (double)(end - begin) / CLOCKS_PER_SEC;
+    // Calculate Fragmentation
+    results.fragmentation = getFragmentation(dChunkListHead);
+
+	// Cleanup
     deleteList(dChunkListHead);
-    return memThatCouldNotFit;
+    return results;
 }
 
 
@@ -162,6 +174,14 @@ double getFragmentation(node_t *head){
 		totalFree+=current->size;
     }
     return 1 - ((double)largestFreeBlock/totalFree);
+}
+
+// --------------------------------------------------------------- //
+
+void initResults(testResults_t* results){
+	results->fragmentation = 0;
+	results->totalDeniedSize = 0;
+	results->timeUsed = 0;
 }
 
 // --------------------------------------------------------------- //
@@ -247,10 +267,17 @@ void fileOpenError(char* filename){
 };
 
 // --------------------------------------------------------------- //
-
-void printResult(char* name, double timeUsed, double frag, size_t unfitmem){
+//Deprecated soon be removed
+void printResultOld(char* name, double timeUsed, double frag, size_t unfitmem){
 	printf("%s: Time used: %3fs Fragmentation: %3f MemoryNotAllocated: %3zu\n",\
 			name, timeUsed, frag, unfitmem );
+};
+
+// --------------------------------------------------------------- //
+
+void printResult(char* name, testResults_t results){
+	printf("%s: Time used: %3fs Fragmentation: %3f %% MemoryNotAllocated: %3zu\n",\
+			name, results.timeUsed, results.fragmentation*100, results.totalDeniedSize);
 };
 
 // --------------------------------------------------------------- //
