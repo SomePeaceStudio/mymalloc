@@ -1,3 +1,5 @@
+
+
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
@@ -26,6 +28,9 @@ void printHelp();
 
 // Malloc algorithm functions
 size_t bestFit(node_t *chunkListHead, node_t *requestListHead);
+
+double getFragmentation(node_t *head);
+
 
 
 int main(int argc, char *argv[]){
@@ -128,10 +133,36 @@ size_t bestFit(node_t *chunkListHead, node_t *requestListHead){
 			bestFit = 0;
 		}
     }
+    printf("Fragmentation: %3e\n", getFragmentation(dChunkListHead));
     deleteList(dChunkListHead);
     return memThatCouldNotFit;
 }
 
+
+// --------------------------------------------------------------- //
+
+//
+// Formula from:
+// https://en.wikipedia.org/wiki/Fragmentation_(computing)
+// External Memory Fragmentation = 1 - 	largest block of free memory
+//										----------------------------
+//										total free memory
+
+double getFragmentation(node_t *head){
+	if(head == 0){
+		return 0;
+	}
+	size_t largestFreeBlock = head->size;
+	size_t totalFree = 0;
+
+	for(node_t *current = head; current != 0; current = current->next){
+		if(current->size > largestFreeBlock){
+			largestFreeBlock = current->size;
+		}
+		totalFree+=current->size;
+    }
+    return 1 - ((double)largestFreeBlock/totalFree);
+}
 
 // --------------------------------------------------------------- //
 
