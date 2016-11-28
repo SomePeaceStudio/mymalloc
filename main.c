@@ -40,7 +40,7 @@ void printHelp();
 
 // Malloc algorithm functions
 testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead);
-
+testResults_t worstFit(node_t *chunkListHead, node_t *requestListHead);
 // Result calculation
 double getFragmentation(node_t *head);
 void initResults(testResults_t* results);
@@ -104,6 +104,7 @@ int main(int argc, char *argv[]){
 
 	// bestFit(chunkListHead,requestListHead);
 	printResult("BestFit", multitest(&bestFit,chunkListHead,requestListHead));
+	printResult("WorstFit", multitest(&worstFit,chunkListHead,requestListHead));
 
     // TODO: Test all allocation methods
 
@@ -161,6 +162,54 @@ testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead){
 	return results;
 }
 
+testResults_t worstFit(node_t *chunkListHead, node_t *requestListHead){
+	// Results
+	testResults_t results;
+	initResults(&results);
+
+	node_t *worstFit = 0;
+	// Dublicate chunk list for ecapsulated test
+	node_t *dChunkListHead = dublicateList(chunkListHead);;
+	// Current chunk / Request
+	node_t *currChunk;
+	node_t *currRequest;
+
+	// For time testing
+	clock_t begin;
+    clock_t end;
+    clock_t total = 0;
+
+	begin = clock();
+	for(currRequest = requestListHead; currRequest != 0; currRequest = currRequest->next){
+		// Find worst fit
+		for(currChunk = dChunkListHead; currChunk != 0; currChunk = currChunk->next){
+			if(currChunk->size >= currRequest->size){
+				if( worstFit == 0 ){
+					worstFit = currChunk;
+				}else if( currChunk->size - currRequest->size > worstFit->size - currRequest->size ){
+					worstFit = currChunk;
+				}
+			}
+    	}
+    	if(worstFit == 0){
+				//printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
+				results.totalDeniedSize += currRequest -> size;
+		}else{
+			//printf("Worst fit: %d For: %d\n", (int)worstFit->size, (int)currRequest->size);
+			worstFit->size -= currRequest->size;
+			worstFit = 0;
+		}
+    }
+	end = clock();
+	// Calculate Fragmentation
+    results.fragmentation = getFragmentation(dChunkListHead);
+	// Calculate Time used
+	results.timeUsed = (double)(end - begin) / CLOCKS_PER_SEC;
+	// Cleanup
+    deleteList(dChunkListHead);
+
+	return results;
+}
 
 // --------------------------------------------------------------- //
 
