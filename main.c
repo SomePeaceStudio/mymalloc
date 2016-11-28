@@ -7,6 +7,8 @@
 
 // -------------------- Globals and structures ------------------- //
 
+#define TESTTIMES 100
+
 typedef struct node{
 	size_t 	size;
 	struct 	node* next;
@@ -17,6 +19,9 @@ typedef struct testResults{
 	size_t 		totalDeniedSize;
 	double 		timeUsed;
 } testResults_t;
+
+
+
 
 // --------------------- Function prototypes --------------------- //
 
@@ -36,10 +41,12 @@ void printHelp();
 // Malloc algorithm functions
 testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead);
 
-
 // Result calculation
 double getFragmentation(node_t *head);
 void initResults(testResults_t* results);
+// For testing multiple times
+testResults_t multitest(testResults_t (*f)(node_t*,node_t*),node_t* ch,node_t* rh);
+
 
 
 
@@ -96,10 +103,9 @@ int main(int argc, char *argv[]){
     }
 
 	// bestFit(chunkListHead,requestListHead);
-	printResult("BestFit", bestFit(chunkListHead,requestListHead));
+	printResult("BestFit", multitest(&bestFit,chunkListHead,requestListHead));
 
     // TODO: Test all allocation methods
-    // TODO: How to calculate fragmentation?
 
 	return 0;
 }
@@ -113,12 +119,17 @@ testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead){
 
 	node_t *bestFit = 0;
 	// Dublicate chunk list for ecapsulated test
-	node_t *dChunkListHead = dublicateList(chunkListHead);
+	node_t *dChunkListHead = dublicateList(chunkListHead);;
 	// Current chunk / Request
 	node_t *currChunk;
 	node_t *currRequest;
 
-	clock_t begin = clock();
+	// For time testing
+	clock_t begin;
+    clock_t end;
+    clock_t total = 0;
+
+	begin = clock();
 	for(currRequest = requestListHead; currRequest != 0; currRequest = currRequest->next){
 		// Find best fit
 		for(currChunk = dChunkListHead; currChunk != 0; currChunk = currChunk->next){
@@ -131,7 +142,7 @@ testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead){
 			}
     	}
     	if(bestFit == 0){
-				printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
+				//printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
 				results.totalDeniedSize += currRequest -> size;
 		}else{
 			//printf("Best fit: %d For: %d\n", (int)bestFit->size, (int)currRequest->size);
@@ -139,15 +150,15 @@ testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead){
 			bestFit = 0;
 		}
     }
-    clock_t end = clock();
-    // Calculate Time used
-	results.timeUsed = (double)(end - begin) / CLOCKS_PER_SEC;
-    // Calculate Fragmentation
+	end = clock();
+	// Calculate Fragmentation
     results.fragmentation = getFragmentation(dChunkListHead);
-
+	// Calculate Time used
+	results.timeUsed = (double)(end - begin) / CLOCKS_PER_SEC;
 	// Cleanup
     deleteList(dChunkListHead);
-    return results;
+
+	return results;
 }
 
 
@@ -182,6 +193,24 @@ void initResults(testResults_t* results){
 	results->fragmentation = 0;
 	results->totalDeniedSize = 0;
 	results->timeUsed = 0;
+}
+
+// --------------------------------------------------------------- //
+// Tests malloc algorithm n times, where n = TESTTIMES
+// testResults_t multitest(testMethod,chunksHead,requestsHead)
+testResults_t multitest(testResults_t (*f)(node_t*,node_t*),node_t* ch,node_t* rh){
+	testResults_t results;
+	initResults(&results);
+
+	double totalTime = 0;
+	for (int i = 0; i < TESTTIMES; ++i){
+		results = f(ch,rh);
+		//printResult("BestFit", multitest(&bestFit,chunkListHead,requestListHead));
+		totalTime += results.timeUsed;
+	}
+
+	results.timeUsed = totalTime/TESTTIMES;
+	return results;
 }
 
 // --------------------------------------------------------------- //
