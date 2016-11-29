@@ -21,8 +21,6 @@ typedef struct testResults{
 } testResults_t;
 
 
-
-
 // --------------------- Function prototypes --------------------- //
 
 // Linked list
@@ -41,6 +39,9 @@ void printHelp();
 // Malloc algorithm functions
 testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead);
 testResults_t worstFit(node_t *chunkListHead, node_t *requestListHead);
+testResults_t firstFit(node_t *chunkListHead, node_t *requestListHead);
+testResults_t nextFit(node_t *chunkListHead, node_t *requestListHead);
+
 // Result calculation
 double getFragmentation(node_t *head);
 void initResults(testResults_t* results);
@@ -105,13 +106,15 @@ int main(int argc, char *argv[]){
 	// bestFit(chunkListHead,requestListHead);
 	printResult("BestFit", multitest(&bestFit,chunkListHead,requestListHead));
 	printResult("WorstFit", multitest(&worstFit,chunkListHead,requestListHead));
+	printResult("FirstFit", firstFit(chunkListHead,requestListHead));
+	printResult("NextFit", nextFit(chunkListHead,requestListHead));
 
     // TODO: Test all allocation methods
 
 	return 0;
 }
 
-// --------------------------------------------------------------- //
+// ------------------------------- BEST FIT -------------------------------- //
 
 testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead){
 	// Results
@@ -146,7 +149,7 @@ testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead){
 				//printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
 				results.totalDeniedSize += currRequest -> size;
 		}else{
-			//printf("Best fit: %d For: %d\n", (int)bestFit->size, (int)currRequest->size);
+			 //printf("Best fit: %d For: %d\n", (int)bestFit->size, (int)currRequest->size);
 			bestFit->size -= currRequest->size;
 			bestFit = 0;
 		}
@@ -208,6 +211,109 @@ testResults_t worstFit(node_t *chunkListHead, node_t *requestListHead){
 	// Cleanup
     deleteList(dChunkListHead);
 
+	return results;
+}
+
+// -------------------------- FIRST FIT ------------------------------------- //
+testResults_t firstFit(node_t *chunkListHead, node_t *requestListHead){
+	// Results
+	testResults_t results;
+	initResults(&results);
+
+	node_t *firstFit = 0;
+	// Dublicate chunk list for ecapsulated test
+	node_t *dChunkListHead = dublicateList(chunkListHead);
+	// Current chunk / Request
+	node_t *currChunk;
+	node_t *currRequest;
+
+	clock_t begin = clock();
+	for(currRequest = requestListHead; currRequest != 0; currRequest = currRequest->next){
+		// Find first fit
+		for(currChunk = dChunkListHead; currChunk != 0; currChunk = currChunk->next){
+			if(currChunk->size >= currRequest->size){
+				if( firstFit == 0 ){
+					firstFit = currChunk;
+				}else {
+					firstFit = currChunk;
+				}
+			}
+    	}
+    	if(firstFit == 0){
+				printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
+				results.totalDeniedSize += currRequest -> size;
+		}else{
+			 printf("First fit: %d For: %d\n", (int)firstFit->size, (int)currRequest->size);
+			firstFit->size -= currRequest->size;
+			firstFit = 0;
+		}
+    }
+    clock_t end = clock();
+    // Calculate Time used
+		results.timeUsed = (double)(end - begin) / CLOCKS_PER_SEC;
+    // Calculate Fragmentation
+    results.fragmentation = getFragmentation(dChunkListHead);
+
+		// Cleanup
+    deleteList(dChunkListHead);
+    return results;
+}
+
+// -------------------------------- NEXT FIT ------------------------------- //
+testResults_t nextFit(node_t *chunkListHead,node_t *requestListHead){
+	// Results
+	testResults_t results;
+	initResults(&results);
+
+
+	// Dublicate chunk list for ecapsulated test
+	node_t *dChunkListHead = dublicateList(chunkListHead);
+	// Current chunk / Request
+	node_t *currChunk;
+	node_t *currRequest;
+	// specify helper to get a failure allocations
+	int helper = 0;
+
+	currChunk = dChunkListHead;
+	node_t *nextFit = currChunk;
+
+	clock_t begin = clock();
+	for(currRequest = requestListHead; currRequest != 0; currRequest = currRequest->next){
+		currChunk = nextFit;
+		if(currChunk->size >= currRequest->size){
+			currChunk->size -= currRequest->size;
+			helper = 1;
+			printf("Next fit: %d For: %d\n", (int)nextFit->size, (int)currRequest->size);
+		}else {
+			currChunk = currChunk->next;
+			if (currChunk->size >= currRequest->size){
+				currChunk->size -= currRequest->size;
+				helper = 1;
+				printf("Next fit: %d For: %d\n", (int)nextFit->size, (int)currRequest->size);
+			}
+		}
+		nextFit = currChunk;
+		if (currChunk->size<=currRequest->size){
+			printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
+			results.totalDeniedSize += currRequest->size;
+		}
+		if (nextFit->next == 0){
+			nextFit = dChunkListHead;
+			helper = 0;
+		}
+		if (helper == 0){
+			printf("%s: Failed to allocate %3zu bytes of memory.\n", __func__, currRequest -> size);
+			results.totalDeniedSize += currRequest->size;
+		}
+	}
+	clock_t end = clock();
+	// Calculate Time used
+	results.timeUsed = (double)(end - begin) / CLOCKS_PER_SEC;
+	// Calculate Fragmentation
+	results.fragmentation = getFragmentation(dChunkListHead);
+
+	// Cleanup
+	deleteList(dChunkListHead);
 	return results;
 }
 
