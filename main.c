@@ -51,7 +51,7 @@ testResults_t multitest(testResults_t (*f)(node_t*,node_t*),node_t* ch,node_t* r
 
 
 int main(int argc, char *argv[]){
-	
+
 	char* chunksFilename;
 	char* sizesFilename;
 	node_t* chunkListHead = 0;
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]){
 		}
 		printHelp();
 		return 1;
-		
+
 	}
 	// Open files
 	FILE* chunksFile;
