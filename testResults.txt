@@ -1,0 +1,79 @@
+
+==========================Pirmais testu folderis================================
+./main -s mem-frag-tests-1/requests1.txt -c mem-frag-tests-1/chunks1.txt 
+BestFit: Time used: 0.000003s Fragmentation: 68.867925 % MemoryNotAllocated: 205
+WorstFit: Time used: 0.000003s Fragmentation: 75.000000 % MemoryNotAllocated: 243
+FirstFit: Time used: 0.000002s Fragmentation: 78.301887 % MemoryNotAllocated: 205
+NextFit: Time used: 0.000000s Fragmentation: 59.064327 % MemoryNotAllocated: 534
+
+./main -s mem-frag-tests-1/requests2.txt -c mem-frag-tests-1/chunks2.txt 
+BestFit: Time used: 0.000012s Fragmentation: 81.589958 % MemoryNotAllocated: 116
+WorstFit: Time used: 0.000008s Fragmentation: 80.334728 % MemoryNotAllocated: 116
+FirstFit: Time used: 0.000007s Fragmentation: 81.589958 % MemoryNotAllocated: 116
+NextFit: Time used: 0.000000s Fragmentation: 87.362637 % MemoryNotAllocated: 241
+
+./main -s mem-frag-tests-1/requests3.txt -c mem-frag-tests-1/chunks3.txt 
+BestFit: Time used: 0.000007s Fragmentation: 64.344262 % MemoryNotAllocated: 277
+WorstFit: Time used: 0.000005s Fragmentation: 94.390244 % MemoryNotAllocated: 443
+FirstFit: Time used: 0.000004s Fragmentation: 78.278689 % MemoryNotAllocated: 277
+NextFit: Time used: 0.000000s Fragmentation: 84.464286 % MemoryNotAllocated: 913
+
+==========================Otrais testu folderis================================
+
+		=============== Lielie testi - varētu iekļaut ===========
+./main -s mem-frag-tests-2/x1 -c mem-frag-tests-2/x2
+BestFit: Time used: 0.018007s Fragmentation: 97.318032 % MemoryNotAllocated: 37807200
+WorstFit: Time used: 0.017826s Fragmentation: 97.702697 % MemoryNotAllocated: 37807200
+FirstFit: Time used: 0.017556s Fragmentation: 97.318032 % MemoryNotAllocated: 37807200
+NextFit: Time used: 0.000008s Fragmentation: 97.647676 % MemoryNotAllocated: 37834892
+
+
+==========================Trešais testu folderis================================
+
+./main -c mem-frag-tests-3/mem1 -s mem-frag-tests-3/in1
+BestFit: Time used: 0.000001s Fragmentation: 57.192982 % MemoryNotAllocated:   0
+WorstFit: Time used: 0.000001s Fragmentation: 84.297521 % MemoryNotAllocated:  78
+FirstFit: Time used: 0.000001s Fragmentation: 76.842105 % MemoryNotAllocated:   0
+NextFit: Time used: 0.000000s Fragmentation: 76.095618 % MemoryNotAllocated: 346
+
+./main -c mem-frag-tests-3/mem2 -s mem-frag-tests-3/in2
+BestFit: Time used: 0.000001s Fragmentation: 42.320819 % MemoryNotAllocated:   0
+WorstFit: Time used: 0.000001s Fragmentation: 86.538462 % MemoryNotAllocated: 175
+FirstFit: Time used: 0.000001s Fragmentation: 70.307167 % MemoryNotAllocated:   0
+NextFit: Time used: 0.000000s Fragmentation: 78.846154 % MemoryNotAllocated: 253
+
+./main -c mem-frag-tests-3/mem3 -s mem-frag-tests-3/in3
+BestFit: Time used: 0.000001s Fragmentation: 22.630561 % MemoryNotAllocated:   0
+WorstFit: Time used: 0.000001s Fragmentation: 76.402321 % MemoryNotAllocated:   0
+FirstFit: Time used: 0.000001s Fragmentation: 41.972921 % MemoryNotAllocated:   0
+NextFit: Time used: 0.000000s Fragmentation: 22.630561 % MemoryNotAllocated: 269
+
+
+./main -c mem-frag-tests-3/mem4 -s mem-frag-tests-3/in4
+BestFit: Time used: 0.000001s Fragmentation: 19.957537 % MemoryNotAllocated:   0
+WorstFit: Time used: 0.000001s Fragmentation: 83.651805 % MemoryNotAllocated:   0
+FirstFit: Time used: 0.000001s Fragmentation: 27.176221 % MemoryNotAllocated:   0
+NextFit: Time used: 0.000000s Fragmentation: 66.942149 % MemoryNotAllocated: 134
+
+
+./main -c mem-frag-tests-3/mem5 -s mem-frag-tests-3/in5
+BestFit: Time used: 0.000001s Fragmentation: 74.468085 % MemoryNotAllocated:   0
+WorstFit: Time used: 0.000001s Fragmentation: 82.648402 % MemoryNotAllocated: 203
+FirstFit: Time used: 0.000001s Fragmentation: 74.468085 % MemoryNotAllocated:   0
+NextFit: Time used: 0.000000s Fragmentation: 69.696970 % MemoryNotAllocated: 396
+
+./main -c mem-frag-tests-3/mem6 -s mem-frag-tests-3/in6
+BestFit: Time used: 0.000000s Fragmentation: 83.064516 % MemoryNotAllocated: 100
+WorstFit: Time used: 0.000000s Fragmentation: 83.870968 % MemoryNotAllocated: 100
+FirstFit: Time used: 0.000000s Fragmentation: 83.064516 % MemoryNotAllocated: 100
+NextFit: Time used: 0.000000s Fragmentation: 67.073171 % MemoryNotAllocated: 294
+
+
+//=x=x=x=x=x=x=x=x=x=x=x=x= Te izmet kautkādu kļūdu =x=x=x=x=x=x=x=x=x=x=x=x=//
+./main -c mem-frag-tests-3/mem7 -s mem-frag-tests-3/in7
+BestFit: Time used: 0.000014s Fragmentation: -nan % MemoryNotAllocated: 3176
+WorstFit: Time used: 0.000015s Fragmentation: -nan % MemoryNotAllocated: 3176
+FirstFit: Time used: 0.000014s Fragmentation: -nan % MemoryNotAllocated: 3176
+NextFit: Time used: 0.000003s Fragmentation: -nan % MemoryNotAllocated: 5877
+
+
