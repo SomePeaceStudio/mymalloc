@@ -1,19 +1,32 @@
+//===========================================================================//
+// Name: LSP_MD5
+// Team: 
+//      Kristaps
+//      Elvijs
+//      Raivis
+//      Andis
+//===========================================================================//
 
+// ---------------------------- Includes ----------------------------------- //
 
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
 #include "time.h"
 
-// -------------------- Globals and structures ------------------- //
+// -------------------- Globals and structures ----------------------------- //
 
+// Defines how many times run every malloc algoritm function. 
+// Used for calculating average run time.
 #define TESTTIMES 10000
 
+// Structure for linked list for storing chunks and requests.
 typedef struct node{
     size_t  size;
     struct  node* next;
 } node_t;
 
+// Structure for test results, every malloc algorithm function returns this.
 typedef struct testResults{
     double      fragmentation;
     size_t      totalDeniedSize;
@@ -21,17 +34,15 @@ typedef struct testResults{
 } testResults_t;
 
 
-// --------------------- Function prototypes --------------------- //
+// --------------------- Function prototypes ------------------------------- //
 
-// Linked list
+// Linked list related
 node_t *createNode(size_t size);
 void addNodeEnd(node_t **start, node_t **end, node_t *newNode);
 node_t* dublicateList(node_t *head);
 void deleteList(node_t *head);
 
 // Print functions
-void printList(node_t *start);
-void printResultOld(char* method, double frag, double timeUsed, size_t unfitmem); //Deprecated soon be removed
 void printResult(char* name, testResults_t results);
 void fileOpenError(char* filename);
 void printHelp();
@@ -43,11 +54,13 @@ testResults_t firstFit(node_t *chunkListHead, node_t *requestListHead);
 testResults_t nextFit(node_t *chunkListHead, node_t *requestListHead);
 
 // Result calculation
-double getFragmentation(node_t *head);
-void initResults(testResults_t* results);
-// For testing multiple times
+double getFragmentation(node_t *head);      // Calculates fragmentation
+void initResults(testResults_t* results);   // Initializes test results struct
+// multitest - run multiple tries of one algorithm
 testResults_t multitest(testResults_t (*f)(node_t*,node_t*),node_t* ch,node_t* rh);
 
+// Debug functions
+void printList(node_t *start);
 
 
 
@@ -55,6 +68,8 @@ int main(int argc, char *argv[]){
 
     char* chunksFilename;
     char* sizesFilename;
+
+    // Pointers to first and last elements in chunk and request lists
     node_t* chunkListHead = 0;
     node_t* chunkListEnd = 0;
 
@@ -94,27 +109,29 @@ int main(int argc, char *argv[]){
         fileOpenError(sizesFilename);
         return 1;
     }
-    // Read chunk list
+    // Read chunk list from chunksFile in linked list data structure
     while(fscanf(chunksFile, "%d", &sizeBuff) > 0) {
         addNodeEnd(&chunkListHead,&chunkListEnd,createNode(sizeBuff));
     }
-    // Read request list
+    // Read request list from sizesFile in linked list data structure
     while(fscanf(sizesFile, "%d", &sizeBuff) > 0) {
         addNodeEnd(&requestListHead,&requestListEnd,createNode(sizeBuff));
     }
 
-    // bestFit(chunkListHead,requestListHead);
+    // Run all mollock algorithm tests multiple times & print results
     printResult("BestFit", multitest(&bestFit,chunkListHead,requestListHead));
     printResult("WorstFit", multitest(&worstFit,chunkListHead,requestListHead));
     printResult("FirstFit", multitest(&firstFit,chunkListHead,requestListHead));
     printResult("NextFit", multitest(&nextFit,chunkListHead,requestListHead));
 
-    // TODO: Test all allocation methods
-
     return 0;
 }
 
 // ------------------------------- BEST FIT -------------------------------- //
+
+// testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead)
+// chunkListHead - pointer to first element in chunks list 
+// requestListHead - pointer to first element in requests list
 
 testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead){
     // Results
@@ -165,6 +182,13 @@ testResults_t bestFit(node_t *chunkListHead, node_t *requestListHead){
     return results;
 }
 
+
+// ------------------------------ WORST FIT -------------------------------- //
+
+// testResults_t worstFit(node_t *chunkListHead, node_t *requestListHead)
+// chunkListHead - pointer to first element in chunks list 
+// requestListHead - pointer to first element in requests list
+
 testResults_t worstFit(node_t *chunkListHead, node_t *requestListHead){
     // Results
     testResults_t results;
@@ -214,7 +238,12 @@ testResults_t worstFit(node_t *chunkListHead, node_t *requestListHead){
     return results;
 }
 
-// -------------------------- FIRST FIT ------------------------------------- //
+// -------------------------- FIRST FIT ------------------------------------ //
+
+// testResults_t firstFit(node_t *chunkListHead, node_t *requestListHead)
+// chunkListHead - pointer to first element in chunks list 
+// requestListHead - pointer to first element in requests list
+
 testResults_t firstFit(node_t *chunkListHead, node_t *requestListHead){
     // Results
     testResults_t results;
@@ -260,6 +289,11 @@ testResults_t firstFit(node_t *chunkListHead, node_t *requestListHead){
 }
 
 // -------------------------------- NEXT FIT ------------------------------- //
+
+// testResults_t nextFit(node_t *chunkListHead, node_t *requestListHead)
+// chunkListHead - pointer to first element in chunks list 
+// requestListHead - pointer to first element in requests list
+
 testResults_t nextFit(node_t *chunkListHead,node_t *requestListHead){
     // Results
     testResults_t results;
@@ -317,10 +351,12 @@ testResults_t nextFit(node_t *chunkListHead,node_t *requestListHead){
     return results;
 }
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
 
-//
-// Formula from:
+// double getFragmentation(node_t *head) where head is pointer to first chunks
+// list element.
+// 
+// Formula used:
 // https://en.wikipedia.org/wiki/Fragmentation_(computing)
 // External Memory Fragmentation = 1 -  largest block of free memory
 //                                      ----------------------------
@@ -342,15 +378,17 @@ double getFragmentation(node_t *head){
     return 1 - ((double)largestFreeBlock/totalFree);
 }
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
 
+// Initializes new testResults_t struct elements
 void initResults(testResults_t* results){
     results->fragmentation = 0;
     results->totalDeniedSize = 0;
     results->timeUsed = 0;
 }
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
+
 // Tests malloc algorithm n times, where n = TESTTIMES
 // testResults_t multitest(testMethod,chunksHead,requestsHead)
 testResults_t multitest(testResults_t (*f)(node_t*,node_t*),node_t* ch,node_t* rh){
@@ -368,8 +406,9 @@ testResults_t multitest(testResults_t (*f)(node_t*,node_t*),node_t* ch,node_t* r
     return results;
 }
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
 
+// Creates new node with specified size
 node_t *createNode(size_t size){
     node_t *newNode;
     newNode = (node_t*)malloc(sizeof(node_t));
@@ -383,8 +422,9 @@ node_t *createNode(size_t size){
     return newNode;
 };
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
 
+// Adds new node element at the end of linked list 
 void addNodeEnd(node_t **head, node_t **end, node_t *newNode){
     // if List is empty
     if(*head == 0){
@@ -398,8 +438,10 @@ void addNodeEnd(node_t **head, node_t **end, node_t *newNode){
 }
 
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
 
+// Dublicated liked list starting from first element.
+// Used for encapsulated tests in each malloc algorithm function.
 node_t* dublicateList(node_t *head){
     if( head == 0 ){
         return 0;
@@ -412,8 +454,9 @@ node_t* dublicateList(node_t *head){
     return newHead;
 }
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
 
+// Delete linded list.
 void deleteList(node_t *head){
     if(head == 0){
         return;
@@ -429,39 +472,35 @@ void deleteList(node_t *head){
     }
 }
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
 
+// Prints linked list size values starting from first element
 void printList(node_t *head){
     for(node_t *current = head; current != 0; current = current->next){
         printf("Size: %3zu \n", current->size);
     }
 }
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
 
-//TODO: Write better printHelp();
+// Prints help if wrong flags pased to main()
 void printHelp(){
     printf("Wrong input.\nExpected:\n./file -c chunks.txt -s sizes.txt\n");
 };
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
 
+// Printed if could not open file
 void fileOpenError(char* filename){
     printf("Could not open file: %s\n",filename);
 };
 
-// --------------------------------------------------------------- //
-//Deprecated soon be removed
-void printResultOld(char* name, double timeUsed, double frag, size_t unfitmem){
-    printf("%s: Time used: %3fs Fragmentation: %3f MemoryNotAllocated: %3zu\n",\
-            name, timeUsed, frag, unfitmem );
-};
+// ------------------------------------------------------------------------- //
 
-// --------------------------------------------------------------- //
-
+// Prints name specified and results returned from malloc algorithm function
 void printResult(char* name, testResults_t results){
     printf("%s: Time used: %3fs Fragmentation: %3f %% MemoryNotAllocated: %3zu\n",\
             name, results.timeUsed, results.fragmentation*100, results.totalDeniedSize);
 };
 
-// --------------------------------------------------------------- //
+// ------------------------------------------------------------------------- //
